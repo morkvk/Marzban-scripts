@@ -2,8 +2,6 @@
 
 # Download Xray latest
 
-RELEASE_TAG="prerelease"
-
 if [[ "$1" ]]; then
     RELEASE_TAG="$1"
 fi
@@ -76,25 +74,19 @@ identify_the_operating_system_and_architecture() {
 }
 
 download_xray() {
-    if [[ "$RELEASE_TAG" == "latest" ]]; then
-        DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-$ARCH.zip"
-    elif [[ "$RELEASE_TAG" == "prerelease" ]]; then
-        # Получаем ссылку на последнюю предварительную версию
-        DOWNLOAD_LINK=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .url' | head -n 1)
-    else
-        DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/$RELEASE_TAG/Xray-linux-$ARCH.zip"
-    fi
-    
-    echo "Скачивание архива Xray: $DOWNLOAD_LINK"
-    
-    # Проверка на существование ссылки
-    if ! curl -s --head "$DOWNLOAD_LINK" | grep "200 OK" > /dev/null; then
-        echo "Ошибка: Файл не найден по адресу $DOWNLOAD_LINK"
+    # Получаем ссылку на последнюю предварительную версию
+    DOWNLOAD_LINK=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .url' | head -n 1)
+
+    if [[ -z "$DOWNLOAD_LINK" ]]; then
+        echo "Ошибка: Не удалось найти предварительную версию для архитектуры $ARCH."
         return 1
     fi
 
-    if ! curl -RL -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
-        echo 'Ошибка: Скачивание не удалось! Пожалуйста, проверьте ваше соединение или попробуйте снова.'
+    # Получаем прямую ссылку на файл
+    ASSET_ID=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .id' | head -n 1)
+    
+    if [[ -z "$ASSET_ID" ]]; then
+        echo "Ошибка: Не удалось найти ID актива для архитектуры $ARCH."
         return 1
     fi
 }
