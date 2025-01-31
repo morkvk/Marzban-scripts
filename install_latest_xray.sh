@@ -81,7 +81,7 @@ download_xray() {
         echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
-}
+} 
 
 extract_xray() {
     if ! unzip -q "$ZIP_FILE" -d "$TMP_DIRECTORY"; then
