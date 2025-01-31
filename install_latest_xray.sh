@@ -74,16 +74,10 @@ identify_the_operating_system_and_architecture() {
 }
 
 download_xray() {
-    # Получаем информацию о последнем prerelease
-    RELEASE_INFO=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .browser_download_url' | head -n 1)
-
-    if [ -z "$RELEASE_INFO" ]; then
-        echo 'error: Could not find the download link for the latest prerelease version!'
-        return 1
-    fi
-
-    echo "Downloading Xray archive: $RELEASE_INFO"
-    if ! curl -RL -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$RELEASE_INFO"; then
+    DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/v25.1.30/Xray-linux-$ARCH.zip"
+    
+    echo "Downloading Xray archive: $DOWNLOAD_LINK"
+    if ! curl -RL -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
         echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
