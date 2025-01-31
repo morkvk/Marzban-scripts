@@ -2,7 +2,7 @@
 
 # Download Xray latest
 
-RELEASE_TAG="latest"
+RELEASE_TAG="prerelease"
 
 if [[ "$1" ]]; then
     RELEASE_TAG="$1"
@@ -78,13 +78,16 @@ identify_the_operating_system_and_architecture() {
 download_xray() {
     if [[ "$RELEASE_TAG" == "latest" ]]; then
         DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-$ARCH.zip"
+    elif [[ "$RELEASE_TAG" == "prerelease" ]]; then
+        # Получаем ссылку на последнюю предварительную версию
+        DOWNLOAD_LINK=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .url' | head -n 1)
     else
         DOWNLOAD_LINK="https://github.com/XTLS/Xray-core/releases/download/$RELEASE_TAG/Xray-linux-$ARCH.zip"
     fi
     
-    echo "Downloading Xray archive: $DOWNLOAD_LINK"
+    echo "Скачивание архива Xray: $DOWNLOAD_LINK"
     if ! curl -RL -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
-        echo 'error: Download failed! Please check your network or try again.'
+        echo 'Ошибка: Скачивание не удалось! Пожалуйста, проверьте ваше соединение или попробуйте снова.'
         return 1
     fi
 }
