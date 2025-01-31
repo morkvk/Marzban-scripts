@@ -86,6 +86,13 @@ download_xray() {
     fi
     
     echo "Скачивание архива Xray: $DOWNLOAD_LINK"
+    
+    # Проверка на существование ссылки
+    if ! curl -s --head "$DOWNLOAD_LINK" | grep "200 OK" > /dev/null; then
+        echo "Ошибка: Файл не найден по адресу $DOWNLOAD_LINK"
+        return 1
+    fi
+
     if ! curl -RL -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
         echo 'Ошибка: Скачивание не удалось! Пожалуйста, проверьте ваше соединение или попробуйте снова.'
         return 1
