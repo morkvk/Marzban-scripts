@@ -74,19 +74,17 @@ identify_the_operating_system_and_architecture() {
 }
 
 download_xray() {
-    # Получаем ссылку на последнюю предварительную версию
-    DOWNLOAD_LINK=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .url' | head -n 1)
+    # Получаем информацию о последнем prerelease
+    RELEASE_INFO=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .browser_download_url' | head -n 1)
 
-    if [[ -z "$DOWNLOAD_LINK" ]]; then
-        echo "Ошибка: Не удалось найти предварительную версию для архитектуры $ARCH."
+    if [ -z "$RELEASE_INFO" ]; then
+        echo 'error: Could not find the download link for the latest prerelease version!'
         return 1
     fi
 
-    # Получаем прямую ссылку на файл
-    ASSET_ID=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases | jq -r '.[] | select(.prerelease == true) | .assets[] | select(.name | test("Xray-linux-'$ARCH'.zip")) | .id' | head -n 1)
-    
-    if [[ -z "$ASSET_ID" ]]; then
-        echo "Ошибка: Не удалось найти ID актива для архитектуры $ARCH."
+    echo "Downloading Xray archive: $RELEASE_INFO"
+    if ! curl -RL -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$RELEASE_INFO"; then
+        echo 'error: Download failed! Please check your network or try again.'
         return 1
     fi
 }
